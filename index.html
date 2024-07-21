@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Damage Calculator</title>
+    <!-- Vuetify CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <!-- Material Design Icons CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+    <!-- Vue.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <!-- Vuetify JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <v-app>
+        <v-container>
+          <v-card class="pa-5">
+            <v-card-title>Damage Calculator</v-card-title>
+            <v-card-text>
+              <v-form>
+                <v-select
+                  v-model="selectedProfile"
+                  :items="profileOptions"
+                  label="Select Profile"
+                  @change="loadProfile"
+                ></v-select>
+                <v-btn @click="createProfile" color="primary" class="mb-4"
+                  >Create New Profile</v-btn
+                >
+                <v-btn @click="deleteProfile" color="red" class="mb-4"
+                  >Delete Profile</v-btn
+                >
+
+                <v-checkbox
+                  v-model="useFlatDamage"
+                  label="Use Flat Damage"
+                ></v-checkbox>
+
+                <template v-if="!useFlatDamage">
+                  <v-text-field
+                    v-model="baseDamage.weaponDamage"
+                    label="Weapon Damage"
+                    type="number"
+                  ></v-text-field>
+
+                  <v-text-field
+                    v-model="baseDamage.skillPercentage"
+                    label="Skill Percentage"
+                    type="number"
+                  ></v-text-field>
+                </template>
+
+                <template v-else>
+                  <v-text-field
+                    v-model="flatDamage"
+                    label="Flat Damage"
+                    type="number"
+                  ></v-text-field>
+                </template>
+
+                <v-divider class="my-4"></v-divider>
+
+                <h3>Main Stats</h3>
+                <v-text-field
+                  v-model="mainStats"
+                  label="Main Stats"
+                  type="number"
+                ></v-text-field>
+
+                <v-divider class="my-4"></v-divider>
+
+                <h3>Additives</h3>
+                <div
+                  v-for="(additive, index) in additives"
+                  :key="index"
+                  class="d-flex align-center mb-3"
+                >
+                  <v-select
+                    v-model="additives[index].name"
+                    :items="additiveOptions"
+                    label="Additive"
+                    class="mr-3"
+                  ></v-select>
+                  <v-text-field
+                    v-model="additives[index].value"
+                    label="Value"
+                    type="number"
+                  ></v-text-field>
+                  <v-btn icon @click="removeAdditive(index)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </div>
+                <v-btn @click="addAdditive">Add Additive</v-btn>
+
+                <v-divider class="my-4"></v-divider>
+
+                <v-text-field
+                  v-model="vulnerable"
+                  label="Vulnerable"
+                  type="number"
+                ></v-text-field>
+
+                <v-divider class="my-4"></v-divider>
+
+                <v-text-field
+                  v-model="criticalStrikeDamage"
+                  label="Critical Strike Damage"
+                  type="number"
+                ></v-text-field>
+
+                <v-divider class="my-4"></v-divider>
+
+                <h3>Global Multipliers</h3>
+                <div
+                  v-for="(multiplier, index) in globalMultipliers"
+                  :key="index"
+                  class="d-flex align-center mb-3"
+                >
+                  <v-select
+                    v-model="globalMultipliers[index].name"
+                    :items="multiplierOptions"
+                    label="Multiplier"
+                    class="mr-3"
+                  ></v-select>
+                  <v-text-field
+                    v-model="globalMultipliers[index].value"
+                    label="Value"
+                    type="number"
+                  ></v-text-field>
+                  <v-btn icon @click="removeGlobalMultiplier(index)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </div>
+                <v-btn @click="addGlobalMultiplier"
+                  >Add Multiplier</v-btn
+                >
+
+                <v-divider class="my-4"></v-divider>
+
+                <v-text-field
+                  v-model="reductionDamage"
+                  label="Reduction Damage"
+                  type="number"
+                ></v-text-field>
+
+                <v-divider class="my-4"></v-divider>
+
+                <v-btn @click="calculateDamage" color="primary">Calculate</v-btn>
+                <v-btn @click="saveProfile" color="success" class="ml-3"
+                  >Save Profile</v-btn
+                >
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <v-alert v-if="result !== null" type="success"
+                >Result: {{ result }}</v-alert
+              >
+            </v-card-actions>
+          </v-card>
+        </v-container>
+      </v-app>
+    </div>
+
+    <script>
+      new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        data() {
+          return {
+            baseDamage: {
+              weaponDamage: 0,
+              skillPercentage: 0,
+            },
+            flatDamage: 0,
+            useFlatDamage: false,
+            mainStats: 0,
+            additives: [{ name: "", value: 0 }],
+            vulnerable: 0,
+            criticalStrikeDamage: 0,
+            globalMultipliers: [{ name: "", value: 0 }],
+            reductionDamage: 74, // Default reduction damage value
+            result: null,
+            additiveOptions: ["Additive 1", "Additive 2", "Additive 3"],
+            multiplierOptions: [
+              "Multiplier 1",
+              "Multiplier 2",
+              "Multiplier 3",
+            ],
+            profileOptions: this.getProfileOptions(),
+            selectedProfile: null,
+          };
+        },
+        methods: {
+          addAdditive() {
+            this.additives.push({ name: "", value: 0 });
+          },
+          removeAdditive(index) {
+            this.additives.splice(index, 1);
+          },
+          addGlobalMultiplier() {
+            this.globalMultipliers.push({ name: "", value: 0 });
+          },
+          removeGlobalMultiplier(index) {
+            this.globalMultipliers.splice(index, 1);
+          },
+          calculateDamage() {
+            let baseDamage;
+
+            if (this.useFlatDamage) {
+              baseDamage = this.flatDamage;
+            } else {
+              // Base damage is weapon damage * skill percentage (divided by 100 to convert percentage)
+              baseDamage =
+                this.baseDamage.weaponDamage *
+                (this.baseDamage.skillPercentage / 100);
+            }
+
+            // Additive damage calculation (sum of all additive values divided by 100)
+            const totalAdditives = this.additives.reduce(
+              (sum, additive) => sum + additive.value / 100,
+              0
+            );
+
+            // Vulnerable damage bonus (divided by 100 to convert percentage)
+            const vulnerableBonus = this.vulnerable / 100;
+
+            // Critical strike damage bonus (divided by 100 to convert percentage)
+            const criticalStrikeBonus = this.criticalStrikeDamage / 100;
+
+            // Main stat bonus (main stat value divided by 1000, as 200 main stat gives 20% bonus, i.e., 200/1000)
+            const mainStatBonus = this.mainStats / 1000;
+
+            // Global multipliers (sum of all global multiplier values divided by 100)
+            const totalGlobalMultipliers = this.globalMultipliers.reduce(
+              (sum, multiplier) => sum + multiplier.value / 100,
+              0
+            );
+
+            // Reduction damage calculation ((100 - reductionDamage) / 100)
+            const reductionMultiplier = (100 - this.reductionDamage) / 100;
+
+            // Calculate the final damage
+            const finalDamage =
+              baseDamage *
+              (1 + totalAdditives) *
+              (1 + vulnerableBonus) *
+              (1 + criticalStrikeBonus) *
+              (1 + mainStatBonus) *
+              (1 + totalGlobalMultipliers) *
+              reductionMultiplier;
+
+            // Set the result to the calculated final damage
+            this.result = finalDamage.toFixed(2); // Round to 2 decimal places for display
+          },
+          saveProfile() {
+            if (!this.selectedProfile) {
+              alert("Select or create a profile first.");
+              return;
+            }
+            const profileData = {
+              baseDamage: this.baseDamage,
+              flatDamage: this.flatDamage,
+              useFlatDamage: this.useFlatDamage,
+              mainStats: this.mainStats,
+              additives: this.additives,
+              vulnerable: this.vulnerable,
+              criticalStrikeDamage: this.criticalStrikeDamage,
+              globalMultipliers: this.globalMultipliers,
+              reductionDamage: this.reductionDamage,
+            };
+            localStorage.setItem(
+              this.selectedProfile,
+              JSON.stringify(profileData)
+            );
+            alert("Profile saved successfully!");
+          },
+          loadProfile() {
+            const profileData = JSON.parse(
+              localStorage.getItem(this.selectedProfile)
+            );
+            if (profileData) {
+              this.baseDamage = profileData.baseDamage;
+              this.flatDamage = profileData.flatDamage;
+              this.useFlatDamage = profileData.useFlatDamage;
+              this.mainStats = profileData.mainStats;
+              this.additives = profileData.additives;
+              this.vulnerable = profileData.vulnerable;
+              this.criticalStrikeDamage = profileData.criticalStrikeDamage;
+              this.globalMultipliers = profileData.globalMultipliers;
+              this.reductionDamage = profileData.reductionDamage;
+            }
+          },
+          createProfile() {
+            const profileName = prompt("Name of the new profile:");
+            if (profileName) {
+              this.profileOptions.push(profileName);
+              this.selectedProfile = profileName;
+              this.saveProfileOptions();
+            }
+          },
+          deleteProfile() {
+            if (!this.selectedProfile) {
+              alert("Select a profile to delete.");
+              return;
+            }
+            const confirmed = confirm(
+              `Are you sure you want to delete the profile '${this.selectedProfile}'?`
+            );
+            if (confirmed) {
+              localStorage.removeItem(this.selectedProfile);
+              this.profileOptions = this.profileOptions.filter(
+                (profile) => profile !== this.selectedProfile
+              );
+              this.selectedProfile = null;
+              this.saveProfileOptions();
+              alert("Profile deleted successfully!");
+            }
+          },
+          getProfileOptions() {
+            const profiles = localStorage.getItem("profileOptions");
+            return profiles ? JSON.parse(profiles) : [];
+          },
+          saveProfileOptions() {
+            localStorage.setItem(
+              "profileOptions",
+              JSON.stringify(this.profileOptions)
+            );
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
