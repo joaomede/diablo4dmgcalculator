@@ -42,7 +42,7 @@
 
                 <v-checkbox
                   v-model="useFlatDamage"
-                  label="Use Flat Damage"
+                  label="Use Flat Damage - (Glacial Aspect, Devilish Aspect, etc)"
                 ></v-checkbox>
 
                 <template v-if="!useFlatDamage">
@@ -140,9 +140,7 @@
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </div>
-                <v-btn @click="addGlobalMultiplier"
-                  >Add Multiplier</v-btn
-                >
+                <v-btn @click="addGlobalMultiplier">Add Multiplier</v-btn>
 
                 <v-divider class="my-4"></v-divider>
 
@@ -154,7 +152,9 @@
 
                 <v-divider class="my-4"></v-divider>
 
-                <v-btn @click="calculateDamage" color="primary">Calculate</v-btn>
+                <v-btn @click="calculateDamage" color="primary"
+                  >Calculate</v-btn
+                >
                 <v-btn @click="saveProfile" color="success" class="ml-3"
                   >Save Profile</v-btn
                 >
@@ -189,12 +189,80 @@
             globalMultipliers: [{ name: "", value: 0 }],
             reductionDamage: 74, // Default reduction damage value
             result: null,
-            additiveOptions: ["Additive 1", "Additive 2", "Additive 3"],
-            multiplierOptions: [
-              "Multiplier 1",
-              "Multiplier 2",
-              "Multiplier 3",
+            additiveOptions: [
+              "[+] % Damage",
+              "Damage Vs Bleeding",
+              "Damage Vs Burning",
+              "Damage Vs CC",
+              "Damage Vs Chilled",
+              "Damage Vs Close",
+              "Damage Vs Dazed",
+              "Damage Vs Distant",
+              "Damage Vs Elites",
+              "Damage Vs Frozen",
+              "Damage Vs Healthy",
+              "Damage Vs Immobilized",
+              "Damage Vs Injured",
+              "Damage Vs Knocked Down",
+              "Damage Vs Poisoned",
+              "Damage Vs Slowed",
+              "Damage Vs Stunned",
+              "Damage Vs Trapped",
+              "Damage from Blood Orb",
+              "Damage from Dodging",
+              "Damage from Golem",
+              "Damage from Mages",
+              "Damage from Warriors",
+              "Damage while Berserking",
+              "Damage while Fortified",
+              "Damage while Healthy",
+              "Damage while Human",
+              "Damage while Shapeshifted",
+              "Damage while Werebear",
+              "Damage while Werewolf",
+              "Damage with Axe",
+              "Damage with Basic",
+              "Damage with Bleeding",
+              "Damage with Blood",
+              "Damage with Bludgeoning",
+              "Damage with Bone",
+              "Damage with Brawling",
+              "Damage with Burning",
+              "Damage with Cold",
+              "Damage with Companion",
+              "Damage with Conjuration",
+              "Damage with Core",
+              "Damage with Crackling Energy",
+              "Damage with Cutthroat",
+              "Damage with Darkness",
+              "Damage with Dual Wielding",
+              "Damage with Earth",
+              "Damage with Fire",
+              "Damage with Frost",
+              "Damage with Imbued",
+              "Damage with Imbuement",
+              "Damage with Lightning",
+              "Damage with Mace",
+              "Damage with Marksman",
+              "Damage with Minions",
+              "Damage with Physical",
+              "Damage with Poison",
+              "Damage with Polearm",
+              "Damage with Pyromancy",
+              "Damage with Ranged",
+              "Damage with Shadow",
+              "Damage with Shadow DoT",
+              "Damage with Shock",
+              "Damage with Slashing",
+              "Damage with Storm",
+              "Damage with Swapped Weapons",
+              "Damage with Sword",
+              "Damage with Trap",
+              "Damage with Weapon Mastery",
+              "Damage with Werebear",
+              "Damage with Werewolf",
             ],
+            multiplierOptions: ["Multiplier 1", "Multiplier 2", "Multiplier 3"],
             profileOptions: this.getProfileOptions(),
             selectedProfile: null,
           };
